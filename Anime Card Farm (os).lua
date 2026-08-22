@@ -442,34 +442,6 @@ local NoRenderToggle = MiscGroupbox:AddToggle("NoRender", {
     end,
 })
 
-local DestroyUnnecessaryButton = MiscGroupbox:AddButton({
-    Text = "Destroy Unnecessary Instance",
-    Tooltip = "Removes decorative/clutter instances from the workspace to boost FPS.",
-    Func = function()
-        local keywords = {"large","grass","rock","pack","tree","medium","log","5","fence","bush","bundle","small","water","crate","conveyor"}
-        local count = 0
-
-        for _, v in ipairs(workspace:GetDescendants()) do
-            local name = v.Name:lower()
-            for _, word in ipairs(keywords) do
-                if name:find(word, 1, true) then
-                    if (word == "pack" or word == "conveyor") and v.Parent ~= workspace then continue end
-                    v:Destroy()
-                    count += 1
-                    break
-                end
-            end
-        end
-
-        Library:Notify({
-            Title = "Destroy Unnecessary Instance",
-            Description = count .. " Destroyed!",
-            Icon = "solar:trash-bin-trash-bold",
-            Time = 5,
-        })
-    end,
-})
-
 -- Movement
 local MovementGroupbox = Tabs.Home:AddRightGroupbox("Movement", "lucide:footprints")
 
