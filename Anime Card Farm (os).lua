@@ -8,11 +8,18 @@ local playerHum = playerChar and playerChar:FindFirstChildOfClass("Humanoid")
 local playerHRP = playerChar and playerChar:FindFirstChild("HumanoidRootPart")
 local Event = ReplicatedStorage.Remotes.GradeRollRE
 local TraitEvent = ReplicatedStorage.Remotes.TraitRollRE
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local Controls = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule")):GetControls()
 local IsGradeRunning = false
 local IsTraitRunning = false
 local LocalPlot = workspace.MAP.Plots[tostring(LocalPlayer.PlotNumber.Value)]
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/Library.lua"))()
+
+-- Addons
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/addons/SaveManager.lua"))()
+local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/addons/ThemeManager.lua"))()
 
 -- Icon Module
 local IconsLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/Main-v2.lua"))()
@@ -53,7 +60,7 @@ Library:SetIconModule({ Icons = {}, GetAsset = GetAsset })
 local Loading = Library:CreateLoading({
 	Title = "Noname | ACF",
 	Icon = "lucide:atom",
-	TotalSteps = 12,
+	TotalSteps = 19,
 })
 
 Loading:ShowSidebarPage(true)
@@ -63,50 +70,61 @@ Loading.Sidebar:AddLabel("Plot: " .. tostring(LocalPlayer.PlotNumber.Value))
 task.spawn(function()
 	Loading:SetCurrentStep(1)
 	Loading:SetMessage("Initializing Environment...")
-	task.wait(0.25)
-
+	task.wait(0.2)
 	Loading:SetCurrentStep(2)
 	Loading:SetMessage("Loading UI Library...")
-	task.wait(0.25)
-
+	task.wait(0.2)
 	Loading:SetCurrentStep(3)
-	Loading:SetMessage("Loading Icon Pack...")
-	task.wait(0.25)
-
+	Loading:SetMessage("Loading Addons...")
+	task.wait(0.2)
 	Loading:SetCurrentStep(4)
-	Loading:SetMessage("Establishing Remote Connections...")
-	task.wait(0.25)
-
+	Loading:SetMessage("Loading Icon Pack...")
+	task.wait(0.2)
 	Loading:SetCurrentStep(5)
-	Loading:SetMessage("Caching Inventory...")
-	task.wait(0.3)
-
+	Loading:SetMessage("Establishing Remote Connections...")
+	task.wait(0.2)
 	Loading:SetCurrentStep(6)
-	Loading:SetMessage("Indexing Cards...")
-	task.wait(0.3)
-
+	Loading:SetMessage("Initializing Connection Manager...")
+	task.wait(0.2)
 	Loading:SetCurrentStep(7)
-	Loading:SetMessage("Preparing Grade Roller...")
-	task.wait(0.3)
-
+	Loading:SetMessage("Initializing Signal System...")
+	task.wait(0.2)
 	Loading:SetCurrentStep(8)
-	Loading:SetMessage("Preparing Trait Roller...")
-	task.wait(0.3)
-
+	Loading:SetMessage("Caching Inventory...")
+	task.wait(0.2)
 	Loading:SetCurrentStep(9)
-	Loading:SetMessage("Preparing Pack Spawner...")
-	task.wait(0.3)
-
+	Loading:SetMessage("Caching Character Items...")
+	task.wait(0.2)
 	Loading:SetCurrentStep(10)
-	Loading:SetMessage("Building Interface...")
-	task.wait(0.3)
-
+	Loading:SetMessage("Indexing Cards...")
+	task.wait(0.2)
 	Loading:SetCurrentStep(11)
+	Loading:SetMessage("Building Interface...")
+	task.wait(0.2)
+	Loading:SetCurrentStep(12)
+	Loading:SetMessage("Preparing Misc Tools...")
+	task.wait(0.2)
+	Loading:SetCurrentStep(13)
+	Loading:SetMessage("Preparing Movement Tools...")
+	task.wait(0.2)
+	Loading:SetCurrentStep(14)
+	Loading:SetMessage("Preparing Grade Roller...")
+	task.wait(0.2)
+	Loading:SetCurrentStep(15)
+	Loading:SetMessage("Preparing Trait Roller...")
+	task.wait(0.2)
+	Loading:SetCurrentStep(16)
+	Loading:SetMessage("Preparing Pack Spawner...")
+	task.wait(0.2)
+	Loading:SetCurrentStep(17)
+	Loading:SetMessage("Loading Settings...")
+	task.wait(0.2)
+	Loading:SetCurrentStep(18)
 	Loading:SetMessage("Finalizing...")
 	task.wait(0.3)
-
-	Loading:SetCurrentStep(12)
+	Loading:SetCurrentStep(19)
 	Loading:SetMessage("Ready!")
+	task.wait(0.3)
 	Loading:Continue() -- Destroys the loader and opens the main window
 end)
 
@@ -317,11 +335,22 @@ end))
 local Window = Library:CreateWindow({
     Title = "Noname | ACF",
     Icon = "lucide:atom",
+    Footer = "By Isskkauw",
+    Font = Enum.Font.GothamMedium,
 })
+
+if Library.IsMobile then
+    for _, Elem in Library.DraggableElements do
+        if Elem:IsA("TextButton") and Elem.Text == "Lock" then
+            Elem:Destroy()
+        end
+    end
+end
 
 local Tabs = {
     Home = Window:AddTab("Main", "lucide:house"),
     Roller = Window:AddTab("Roller", "lucide:dices"),
+    Settings = Window:AddTab("Settings", "lucide:settings"),
 }
 
 -- Misc
@@ -399,6 +428,45 @@ local AntiAFKToggle = MiscGroupbox:AddToggle("AntiAFK", {
         else
             antiafk(nil)
         end
+    end,
+})
+
+local NoRenderToggle = MiscGroupbox:AddToggle("NoRender", {
+    Text = "No Render",
+    Tooltip = "Disables 3D rendering to boost FPS.",
+    Default = false,
+    Callback = function(v)
+        pcall(function()
+            RunService:Set3dRenderingEnabled(not v)
+        end)
+    end,
+})
+
+local DestroyUnnecessaryButton = MiscGroupbox:AddButton({
+    Text = "Destroy Unnecessary Instance",
+    Tooltip = "Removes decorative/clutter instances from the workspace to boost FPS.",
+    Func = function()
+        local keywords = {"large","grass","rock","pack","tree","medium","log","5","fence","bush","bundle","small","water","crate","conveyor"}
+        local count = 0
+
+        for _, v in ipairs(workspace:GetDescendants()) do
+            local name = v.Name:lower()
+            for _, word in ipairs(keywords) do
+                if name:find(word, 1, true) then
+                    if (word == "pack" or word == "conveyor") and v.Parent ~= workspace then continue end
+                    v:Destroy()
+                    count += 1
+                    break
+                end
+            end
+        end
+
+        Library:Notify({
+            Title = "Destroy Unnecessary Instance",
+            Description = count .. " Destroyed!",
+            Icon = "solar:trash-bin-trash-bold",
+            Time = 5,
+        })
     end,
 })
 
@@ -515,6 +583,111 @@ JumpPowerTextbox:OnChanged(function(value)
     end
 end)
 
+MovementGroupbox:AddDivider()
+
+local FlySpeedTextbox = MovementGroupbox:AddInput("FlySpeedValue", {
+    Text = "Fly Speed",
+    Default = "",
+    Numeric = true,
+    Placeholder = "1",
+})
+
+local flying = false
+local flyspeed = 0
+local bodyVelocity = nil
+local bodyGyro = nil
+local EnableFlyToggle = MovementGroupbox:AddToggle("EnableFly", {
+    Text = "Enable Fly",
+    Default = false,
+    Callback = function(state)
+        if state then
+            local value = Library.Options.FlySpeedValue.Value
+            if not value or value == "" then
+                Library:Notify({
+                    Title = "Movement",
+                    Description = "Set the Fly Speed Value First",
+                    Icon = "solar:danger-triangle-bold",
+                    Time = 4,
+                })
+                Library.Toggles.EnableFly:SetValue(false)
+                return
+            end
+
+            flyspeed = value * 25
+
+            if flying then return end
+
+            Library:Notify({
+                Title = "Fly",
+                Description = "Flying enabled.",
+                Icon = "lucide:bird",
+                Time = 3,
+            })
+
+            local character = playerChar or CharacterAdded:Wait()
+            local humanoidRootPart = playerHRP or character:WaitForChild("HumanoidRootPart")
+            local humanoid = playerHum or character:WaitForChild("Humanoid")
+
+            humanoid.PlatformStand = true
+            flying = true
+
+            bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+            bodyVelocity.Parent = humanoidRootPart
+
+            bodyGyro = Instance.new("BodyGyro")
+            bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+            bodyGyro.D = 50
+            bodyGyro.Parent = humanoidRootPart
+
+            NnBind.Connect(RunService.RenderStepped:Connect(function(dt)
+                if not flying then return end
+
+                local moveVector = Controls:GetMoveVector()
+                local camCFrame = Camera.CFrame
+                local direction = (camCFrame.RightVector * moveVector.X) + (camCFrame.LookVector * -moveVector.Z) + (Vector3.new(0, 1, 0) * moveVector.Y)
+
+                if direction.Magnitude > 0 then
+                    bodyVelocity.Velocity = direction.Unit * flyspeed
+                else
+                    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                end
+
+                bodyGyro.CFrame = bodyGyro.CFrame:Lerp(camCFrame, math.min(1, dt * 5))
+            end), "Fly_Stepped")
+        else
+            flying = false
+
+            Library:Notify({
+                Title = "Fly",
+                Description = "Flying disabled.",
+                Icon = "lucide:bird",
+                Time = 3,
+            })
+
+            if playerChar then
+                local humanoid = playerHum
+                if humanoid then
+                    humanoid.PlatformStand = false
+                end
+            end
+
+            NnBind.Disconnect("Fly_Stepped")
+
+            if bodyVelocity then
+                bodyVelocity:Destroy()
+                bodyVelocity = nil
+            end
+
+            if bodyGyro then
+                bodyGyro:Destroy()
+                bodyGyro = nil
+            end
+        end
+    end,
+})
+
 NnBind.Connect(CharacterCached:Connect(function()
     if WalkspeedActive then
         local value = Library.Options.WalkspeedValue.Value
@@ -561,8 +734,18 @@ local function DisableRollGrade()
     table.clear(GradeRollerStatsLabels)
 end
 
-local function RollGrade(TargetGrade, Tools)
+local GradeData = {{Name="F",Best=1},{Name="E",Best=2},{Name="D",Best=3},{Name="C",Best=4},{Name="B",Best=5},{Name="A",Best=6},{Name="S",Best=7},{Name="SS",Best=8},{Name="SR",Best=9},{Name="UR",Best=10},{Name="LR",Best=11}}
+
+local GradeValues = {}
+local GradeBest = {}
+for _, grade in ipairs(GradeData) do
+    table.insert(GradeValues, grade.Name)
+    GradeBest[grade.Name] = grade.Best
+end
+
+local function RollGrade(MinGrade, Tools)
     IsGradeRunning = true
+    local MinGradeBest = GradeBest[MinGrade] or 0
 
     local toolOrder = {}
     for ToolName in pairs(Tools) do
@@ -596,7 +779,7 @@ local function RollGrade(TargetGrade, Tools)
             end
         end
 
-        if data and data.Grade and TargetGrade[data.Grade] then
+        if data and data.Grade and GradeBest[data.Grade] and GradeBest[data.Grade] >= MinGradeBest then
             Tools[displayName] = nil
 
             if GradeRollerStatsLabels[displayName] then
@@ -662,11 +845,12 @@ local function RollGrade(TargetGrade, Tools)
     NnBind.Disconnect("GradeRoller_Result")
 end
 
-local TargetGradeDropdown = MainGroupbox:AddDropdown("TargetGrade", {
-    Text = "Target Grade",
-    Values = { "F", "E", "D", "C", "B", "A", "S", "SS", "SR", "UR", "LR" },
-    Multi = true,
-    AllowNull = true,
+local MinGradeDropdown = MainGroupbox:AddDropdown("MinGrade", {
+    Text = "Min Grade",
+    Values = GradeValues,
+    Multi = false,
+    AllowNull = false,
+    Default = "LR",
 })
 
 local CardToRollDropdown = MainGroupbox:AddDropdown("CardToRoll", {
@@ -697,8 +881,9 @@ local AutoRollToggle = MainGroupbox:AddToggle("AutoRollGrade", {
                 return
             end
 
-            local Grades = Library.Options.TargetGrade.Value
-            task.spawn(RollGrade, Grades, Tools)
+            local MinGrade = Library.Options.MinGrade.Value
+
+            task.spawn(RollGrade, MinGrade, Tools)
         else
             DisableRollGrade()
         end
@@ -706,33 +891,14 @@ local AutoRollToggle = MainGroupbox:AddToggle("AutoRollGrade", {
 })
 
 -- Trait Roller
-local TraitData = {
-    Order = {
-        "Fortune I", "Vigor I", "Strength I",
-        "Fortune II", "Vigor II", "Strength II",
-        "Fortune III", "Vigor III", "Strength III",
-        "Assassin", "Berserk", "Tank", "Rich", "Emperor", "Phoenix", "Almighty", "Sovereign",
-    },
-    Image = {
-        ["Fortune I"] = "rbxassetid://136015994897366",
-        ["Vigor I"] = "rbxassetid://100143482508141",
-        ["Strength I"] = "rbxassetid://78765578312593",
-        ["Fortune II"] = "rbxassetid://136015994897366",
-        ["Vigor II"] = "rbxassetid://100143482508141",
-        ["Strength II"] = "rbxassetid://78765578312593",
-        ["Fortune III"] = "rbxassetid://136015994897366",
-        ["Vigor III"] = "rbxassetid://100143482508141",
-        ["Strength III"] = "rbxassetid://78765578312593",
-        ["Assassin"] = "rbxassetid://76224080356785",
-        ["Berserk"] = "rbxassetid://98350751918534",
-        ["Tank"] = "rbxassetid://90649910911616",
-        ["Rich"] = "rbxassetid://111462637218344",
-        ["Emperor"] = "rbxassetid://98698751977663",
-        ["Phoenix"] = "rbxassetid://102280959845400",
-        ["Almighty"] = "rbxassetid://115429293221611",
-        ["Sovereign"] = "rbxassetid://92476090315392",
-    },
-}
+local TraitData = {{Name="Fortune I",Image="rbxassetid://136015994897366"},{Name="Vigor I",Image="rbxassetid://100143482508141"},{Name="Strength I",Image="rbxassetid://78765578312593"},{Name="Fortune II",Image="rbxassetid://136015994897366"},{Name="Vigor II",Image="rbxassetid://100143482508141"},{Name="Strength II",Image="rbxassetid://78765578312593"},{Name="Fortune III",Image="rbxassetid://136015994897366"},{Name="Vigor III",Image="rbxassetid://100143482508141"},{Name="Strength III",Image="rbxassetid://78765578312593"},{Name="Assassin",Image="rbxassetid://76224080356785"},{Name="Berserk",Image="rbxassetid://98350751918534"},{Name="Tank",Image="rbxassetid://90649910911616"},{Name="Rich",Image="rbxassetid://111462637218344"},{Name="Emperor",Image="rbxassetid://98698751977663"},{Name="Phoenix",Image="rbxassetid://102280959845400"},{Name="Almighty",Image="rbxassetid://115429293221611"},{Name="Sovereign",Image="rbxassetid://92476090315392"}}
+
+local TraitValues = {}
+local TraitImages = {}
+for _, trait in ipairs(TraitData) do
+    table.insert(TraitValues, trait.Name)
+    TraitImages[trait.Name] = trait.Image
+end
 
 local TraitsGroupbox = Tabs.Roller:AddRightGroupbox("Traits Roller", "solar:magic-stick-3-bold")
 local TraitsStatsGroupbox = Tabs.Roller:AddRightGroupbox("Traits Roller Stats", "craft:check-square-02-stroke")
@@ -850,10 +1016,10 @@ end
 
 local TargetTraitDropdown = TraitsGroupbox:AddDropdown("TargetTrait", {
     Text = "Target Trait",
-    Values = TraitData.Order,
+    Values = TraitValues,
     Multi = true,
     AllowNull = true,
-    ValueImages = TraitData.Image,
+    ValueImages = TraitImages,
 })
 
 local TraitCardToRollDropdown = TraitsGroupbox:AddDropdown("TraitCardToRoll", {
@@ -903,6 +1069,7 @@ local SpawnPackPriceLabel = SpawnPackStatsGroupbox:AddLabel("Price: -", true)
 local SpawnPackStatusLabel = SpawnPackStatsGroupbox:AddLabel("Status: Idle", true)
 
 local IsSpawnPackRunning = false
+local CurrentSpawnThread = nil
 
 local PackRollData = {
     Mutations = {{Name="Normal",Best=1},{Name="Golden",Best=2},{Name="Diamond",Best=3},{Name="Venomous",Best=4},{Name="Rainbow",Best=5},{Name="Sakura",Best=6},{Name="Candy",Best=7},{Name="Blessed",Best=8},{Name="Radioactive",Best=9},{Name="Glitch",Best=10},{Name="Starfallen",Best=11},{Name="Admin",Best=12},{Name="Unknow",Best=13}},
@@ -910,14 +1077,14 @@ local PackRollData = {
 }
 
 local MutationRankByName = {}
-local MutationNames = {"None"}
+local MutationNames = {"Any"}
 for _, m in ipairs(PackRollData.Mutations) do
     MutationRankByName[m.Name] = m.Best
     table.insert(MutationNames, m.Name)
 end
 
 local RarityRankByName = {}
-local RarityNames = {"None"}
+local RarityNames = {"Any"}
 for _, r in ipairs(PackRollData.Rarity) do
     RarityRankByName[r.Rarity] = r.Best
     table.insert(RarityNames, r.Rarity)
@@ -926,6 +1093,10 @@ end
 local function DisableSpawnPack()
     IsSpawnPackRunning = false
     NnBind.Disconnect("SpawnPack_Result")
+    if CurrentSpawnThread then
+        task.cancel(CurrentSpawnThread)
+        CurrentSpawnThread = nil
+    end
     SpawnPackStatusLabel:SetText("Status: Idle")
 end
 
@@ -938,9 +1109,12 @@ local function SpawnPackAndBuy()
     local ConveyorModels = Plot_N0:WaitForChild("LocalConveyorModels")
     local function NextSpawn()
         if not IsSpawnPackRunning then return end
-        task.wait(1.5)
         SpawnPackStatusLabel:SetText("Status: Spawning...")
-        fireclickdetector(ClickDetector)
+        for i = 1, 30 do
+            if not IsSpawnPackRunning then break end
+            fireclickdetector(ClickDetector)
+            task.wait(0.1)
+        end
     end
 
     local IsHandlingSpawn = false
@@ -952,67 +1126,44 @@ local function SpawnPackAndBuy()
         if IsHandlingSpawn then return end
         IsHandlingSpawn = true
 
-        local PackId = data.PackId
-        local Rarity = data.Rarity
-        local Mutation = data.Mutation
-        local Price = data.Price
-        SpawnPackIdLabel:SetText("Pack: " .. tostring(PackId))
-        SpawnPackRarityLabel:SetText("Rarity: " .. tostring(Rarity))
-        SpawnPackMutationLabel:SetText("Mutation: " .. tostring(Mutation))
-        SpawnPackPriceLabel:SetText("Price: " .. tostring(Price))
-        local MinMutationName = Library.Options.MinMutation.Value
-        local MutationValid = true
-        if MinMutationName and MinMutationName ~= "None" then
-            local minRank = MutationRankByName[MinMutationName]
-            local curRank = Mutation and MutationRankByName[Mutation]
-            MutationValid = (minRank ~= nil) and (curRank ~= nil) and (curRank >= minRank)
-        end
-
-        local MinRarityName = Library.Options.MinRarity.Value
-        local RarityValid = true
-        if MinRarityName and MinRarityName ~= "None" then
-            local minRank = RarityRankByName[MinRarityName]
-            local curRank = Rarity and RarityRankByName[Rarity]
-            RarityValid = (minRank ~= nil) and (curRank ~= nil) and (curRank >= minRank)
-        end
-
-        if not (MutationValid and RarityValid) then
-            SpawnPackStatusLabel:SetText("Status: Skipped (Filter)")
-            IsHandlingSpawn = false
-            NextSpawn()
-            return
-        end
-
-        if Library.Toggles.OnlyNotifyIfFound and Library.Toggles.OnlyNotifyIfFound.Value then
-            SpawnPackStatusLabel:SetText("Status: Found!")
-            Library:Notify({
-                Title = "Pack Spawner",
-                Description = tostring(PackId) .. " Found! Price: " .. tostring(Price),
-                Icon = "lucide:sparkles",
-                Time = 5,
-            })
-            IsHandlingSpawn = false
-            if Library.Toggles.AutoSpawnPack then
-                Library.Toggles.AutoSpawnPack:SetValue(false)
-            else
-                DisableSpawnPack()
+        CurrentSpawnThread = task.spawn(function()
+            local PackId = data.PackId
+            local Rarity = data.Rarity
+            local Mutation = data.Mutation
+            local Price = data.Price
+            SpawnPackIdLabel:SetText("Pack: " .. tostring(PackId))
+            SpawnPackRarityLabel:SetText("Rarity: " .. tostring(Rarity))
+            SpawnPackMutationLabel:SetText("Mutation: " .. tostring(Mutation))
+            SpawnPackPriceLabel:SetText("Price: " .. tostring(Price))
+            local MinMutationName = Library.Options.MinMutation.Value
+            local MutationValid = true
+            if MinMutationName and MinMutationName ~= "Any" then
+                local minRank = MutationRankByName[MinMutationName]
+                local curRank = Mutation and MutationRankByName[Mutation]
+                MutationValid = (minRank ~= nil) and (curRank ~= nil) and (curRank >= minRank)
             end
-            return
-        end
 
-        local Cash = LocalPlayer.CashValue.Value
-        if Cash < (Price or 0) then
-            if Library.Toggles.SkipIfNotEnoughMoney.Value then
-                SpawnPackStatusLabel:SetText("Status: Skipped (No Money)")
+            local MinRarityName = Library.Options.MinRarity.Value
+            local RarityValid = true
+            if MinRarityName and MinRarityName ~= "Any" then
+                local minRank = RarityRankByName[MinRarityName]
+                local curRank = Rarity and RarityRankByName[Rarity]
+                RarityValid = (minRank ~= nil) and (curRank ~= nil) and (curRank >= minRank)
+            end
+
+            if not (MutationValid and RarityValid) then
+                SpawnPackStatusLabel:SetText("Status: Skipped (Filter)")
                 IsHandlingSpawn = false
                 NextSpawn()
                 return
-            else
-                SpawnPackStatusLabel:SetText("Status: Stopped (No Money)")
+            end
+
+            if Library.Toggles.OnlyNotifyIfFound and Library.Toggles.OnlyNotifyIfFound.Value then
+                SpawnPackStatusLabel:SetText("Status: Found!")
                 Library:Notify({
                     Title = "Pack Spawner",
-                    Description = "Not Enough Money, Stopping Auto Spawn Pack",
-                    Icon = "solar:danger-triangle-bold",
+                    Description = tostring(PackId) .. " Found! Price: " .. tostring(Price),
+                    Icon = "lucide:sparkles",
                     Time = 5,
                 })
                 IsHandlingSpawn = false
@@ -1023,32 +1174,62 @@ local function SpawnPackAndBuy()
                 end
                 return
             end
-        end
 
-        SpawnPackStatusLabel:SetText("Status: Buying...")
-        local PackModel = ConveyorModels:WaitForChild(tostring(PackId))
-        if not IsSpawnPackRunning then
+            local Cash = LocalPlayer.CashValue.Value
+            if Cash < (Price or 0) then
+                if Library.Toggles.SkipIfNotEnoughMoney.Value then
+                    SpawnPackStatusLabel:SetText("Status: Skipped (No Money)")
+                    IsHandlingSpawn = false
+                    NextSpawn()
+                    return
+                else
+                    SpawnPackStatusLabel:SetText("Status: Stopped (No Money)")
+                    Library:Notify({
+                        Title = "Pack Spawner",
+                        Description = "Not Enough Money, Stopping Auto Spawn Pack",
+                        Icon = "solar:danger-triangle-bold",
+                        Time = 5,
+                    })
+                    IsHandlingSpawn = false
+                    if Library.Toggles.AutoSpawnPack then
+                        Library.Toggles.AutoSpawnPack:SetValue(false)
+                    else
+                        DisableSpawnPack()
+                    end
+                    return
+                end
+            end
+
+            SpawnPackStatusLabel:SetText("Status: Buying...")
+            local PackModel = ConveyorModels:WaitForChild(tostring(PackId))
+            if not IsSpawnPackRunning then
+                IsHandlingSpawn = false
+                return
+            end
+
+            local MainPart = PackModel:WaitForChild("Main", 3)
+            local Prompt = MainPart and MainPart:WaitForChild("ProximityPrompt", 3)
+
+            if Prompt then
+                for i = 1,20 do
+                    if not IsSpawnPackRunning then break end
+                    fireproximityprompt(Prompt)
+                    task.wait(0.1)
+                end
+                if IsSpawnPackRunning then
+                    Library:Notify({
+                        Title = "Pack Spawner",
+                        Description = tostring(PackId) .. " Buyed! price: " .. tostring(Price),
+                        Icon = "lucide:shopping-cart",
+                        Time = 4,
+                    })
+                end
+            end
+
+            task.wait(1)
             IsHandlingSpawn = false
-            return
-        end
-
-        local MainPart = PackModel:WaitForChild("Main", 3)
-        local Prompt = MainPart and MainPart:WaitForChild("ProximityPrompt", 3)
-
-        if Prompt then
-            task.wait(1.5)
-            fireproximityprompt(Prompt)
-            Library:Notify({
-                Title = "Pack Spawner",
-                Description = tostring(PackId) .. " Buyed! price: " .. tostring(Price),
-                Icon = "lucide:shopping-cart",
-                Time = 4,
-            })
-        end
-
-        task.wait(1)
-        IsHandlingSpawn = false
-        NextSpawn()
+            NextSpawn()
+        end)
     end), "SpawnPack_Result")
 
     fireclickdetector(ClickDetector)
@@ -1089,4 +1270,16 @@ local AutoSpawnPackToggle = SpawnPackGroupbox:AddToggle("AutoSpawnPack", {
         end
     end,
 })
+
+-- Settings
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetFolder("Noname-ACF")
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+ThemeManager:SetLibrary(Library)
+ThemeManager:SetFolder("Noname-ACF")
+ThemeManager:ApplyToTab(Tabs.Settings)
+
+SaveManager:LoadAutoloadConfig()
 
