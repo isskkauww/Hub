@@ -376,14 +376,14 @@ local function SpawnPackAndBuy()
     fireclickdetector(ClickDetector) -- Spawn a Random Pack
 end
 
-local MinRarityDropdown = SpawnPackGroupbox:AddDropdown("MinRarity", {
+SpawnPackGroupbox:AddDropdown("MinRarity", {
     Text = "Min Rarity",
     Values = RarityNames,
     Default = 1,
     Multi = false,
 })
 
-local MinMutationDropdown = SpawnPackGroupbox:AddDropdown("MinMutation", {
+SpawnPackGroupbox:AddDropdown("MinMutation", {
     Text = "Min Mutation",
     Values = MutationNames,
     Default = 1,
@@ -435,7 +435,7 @@ SpawnPackGroupbox:AddButton({
     end,
 })
 
-local PackRuleDropdown = SpawnPackGroupbox:AddDropdown("PackRule", {
+SpawnPackGroupbox:AddDropdown("PackRule", {
     Text = "Rule",
     Values = BuildPackRuleValues(),
     Multi = true,
@@ -472,7 +472,7 @@ SpawnPackGroupbox:AddButton({
 })
 
 -- SkipIfNotEnoughMoney and BuyPackWhenHaveEnoughMoney are mutually exclusive, each turns the other off
-local SkipIfNotEnoughMoneyToggle = SpawnPackGroupbox:AddToggle("SkipIfNotEnoughMoney", {
+SpawnPackGroupbox:AddToggle("SkipIfNotEnoughMoney", {
     Text = "Skip If Not Have Enough Money",
     Default = false,
     Callback = function(state)
@@ -482,7 +482,7 @@ local SkipIfNotEnoughMoneyToggle = SpawnPackGroupbox:AddToggle("SkipIfNotEnoughM
     end,
 })
 
-local BuyPackWhenHaveEnoughMoneyToggle = SpawnPackGroupbox:AddToggle("BuyPackWhenHaveEnoughMoney", {
+SpawnPackGroupbox:AddToggle("BuyPackWhenHaveEnoughMoney", {
     Text = "Buy When Have Enough Money",
     Default = false,
     Callback = function(state)
@@ -496,12 +496,12 @@ local BuyPackWhenHaveEnoughMoneyToggle = SpawnPackGroupbox:AddToggle("BuyPackWhe
     end,
 })
 
-local OnlyNotifyIfFoundToggle = SpawnPackGroupbox:AddToggle("OnlyNotifyIfFound", {
+SpawnPackGroupbox:AddToggle("OnlyNotifyIfFound", {
     Text = "Only Notify If Found",
     Default = false,
 })
 
-local AutoSpawnPackToggle = SpawnPackGroupbox:AddToggle("AutoSpawnPack", {
+SpawnPackGroupbox:AddToggle("AutoSpawnPack", {
     Text = "Start Spawning Packs",
     Default = false,
     Callback = function(state)
@@ -566,14 +566,13 @@ local function antiafk(mode)
     end)
 end
 
-local AntiAFKToggle = MiscGroupbox:AddToggle("AntiAFK", {
+MiscGroupbox:AddToggle("AntiAFK", {
     Text = "Anti-AFK",
     Tooltip = "Prevents getting kicked for idling.",
     Default = false,
     Callback = function(v)
         if v then
-            local AntiAFKDialog
-            AntiAFKDialog = Window:AddDialog("AntiAFKModeDialog", {
+            Window:AddDialog("AntiAFKModeDialog", {
                 Title = "Anti-AFK Mode",
                 Description = "Choose which method to use to prevent being kicked for idling.",
                 Icon = "lucide:radar",
@@ -604,7 +603,54 @@ local AntiAFKToggle = MiscGroupbox:AddToggle("AntiAFK", {
     end,
 })
 
-local NoRenderToggle = MiscGroupbox:AddToggle("NoRender", {
+MiscGroupbox:AddButton({
+    Text = "Delete Other Plots",
+    Tooltip = "Destroys every plot except yours. Cannot be undone.",
+    Risky = true,
+    DoubleClick = true,
+    Func = function()
+        Window:AddDialog("DeleteOtherPlotsConfirmDialog", {
+            Title = "Delete Other Plots",
+            Description = "This action cannot be undone. Are you sure you want to continue?",
+            Icon = "lucide:trash-2",
+            AutoDismiss = true,
+            OutsideClickDismiss = true,
+            FooterButtons = {
+                Cancel = {
+                    Title = "Cancel",
+                    Variant = "Secondary",
+                    Order = 1,
+                    Callback = function() end,
+                },
+                Destroy = {
+                    Title = "Destroy",
+                    Variant = "Primary",
+                    Order = 2,
+                    Callback = function()
+                        local Plots = workspace.MAP.Plots
+                        local DeletedCount = 0
+
+                        for _, Plot in ipairs(Plots:GetChildren()) do
+                            if Plot ~= LocalPlot then
+                                Plot:Destroy()
+                                DeletedCount += 1
+                            end
+                        end
+
+                        Library:Notify({
+                            Title = "Delete Other Plots",
+                            Description = "Deleted " .. DeletedCount .. " other plot(s).",
+                            Icon = "lucide:trash-2",
+                            Time = 4,
+                        })
+                    end,
+                },
+            },
+        })
+    end,
+})
+
+MiscGroupbox:AddToggle("NoRender", {
     Text = "No Render",
     Tooltip = "Disables 3D rendering to boost FPS.",
     Default = false,
@@ -615,14 +661,13 @@ local NoRenderToggle = MiscGroupbox:AddToggle("NoRender", {
     end,
 })
 
-local UnloadButton = MiscGroupbox:AddButton({
+MiscGroupbox:AddButton({
     Text = "Unload",
     Tooltip = "Stops all active features and completely unloads the script UI.",
     Risky = true,
     DoubleClick = true,
     Func = function()
-        local UnloadDialog
-        UnloadDialog = Window:AddDialog("UnloadConfirmDialog", {
+        Window:AddDialog("UnloadConfirmDialog", {
             Title = "Unload Script",
             Description = "This will stop all active features and permanently remove the UI. Continue?",
             Icon = "lucide:power",
