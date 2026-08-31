@@ -603,6 +603,17 @@ MiscGroupbox:AddToggle("AntiAFK", {
     end,
 })
 
+MiscGroupbox:AddToggle("NoRender", {
+    Text = "No Render",
+    Tooltip = "Disables 3D rendering to boost FPS.",
+    Default = false,
+    Callback = function(v)
+        pcall(function()
+            RunService:Set3dRenderingEnabled(not v)
+        end)
+    end,
+})
+
 MiscGroupbox:AddButton({
     Text = "Delete Other Plots",
     Tooltip = "Destroys every plot except yours. Cannot be undone.",
@@ -647,17 +658,6 @@ MiscGroupbox:AddButton({
                 },
             },
         })
-    end,
-})
-
-MiscGroupbox:AddToggle("NoRender", {
-    Text = "No Render",
-    Tooltip = "Disables 3D rendering to boost FPS.",
-    Default = false,
-    Callback = function(v)
-        pcall(function()
-            RunService:Set3dRenderingEnabled(not v)
-        end)
     end,
 })
 
