@@ -1,3 +1,10 @@
+--[[
+   Open Source Script
+   Developed By Isskkauw On Roblox
+]]
+
+
+
 --[[ Services & Variables ]]--
 if not game:IsLoaded() then game.Loaded:Wait() end
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -14,7 +21,7 @@ local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/d
 local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/addons/ThemeManager.lua"))()
 
 --[[ Icon Module ]]--
-local IconsLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/Main-v2.lua"))()
+local IconsLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/isskkauww/Modules/refs/heads/main/Icons.luau"))()
 
 -- Adapts whatever shape IconsLib returns into the {Url, ImageRectSize, ImageRectOffset} format the Library's icon module expects
 local function GetAsset(IconName)
@@ -158,7 +165,7 @@ local CurrentSpawnThread = nil
 -- static roll tables; each entry's Best value is its rank, used below to build the min-rarity/min-mutation filters
 local PackRollData = {
     Mutations = {{Name="Normal",Best=1},{Name="Golden",Best=2},{Name="Diamond",Best=3},{Name="Venomous",Best=4},{Name="Rainbow",Best=5},{Name="Sakura",Best=6},{Name="Candy",Best=7},{Name="Blessed",Best=8},{Name="Radioactive",Best=9},{Name="Glitch",Best=10},{Name="Starfallen",Best=11},{Name="Admin",Best=12},{Name="Nullstar",Best=13},{Name="Unknow",Best=14}},
-    Rarity = {{Rarity="Common",Best=1},{Rarity="Uncommon",Best=2},{Rarity="Rare",Best=3},{Rarity="Epic",Best=4},{Rarity="Legendary",Best=5},{Rarity="Mythic",Best=6},{Rarity="Secret",Best=7},{Rarity="Divine",Best=8},{Rarity="Transcendent",Best=9},{Rarity="Shadow",Best=10},{Rarity="Emperor",Best=11},{Rarity="Demon",Best=12},{Rarity="Manga",Best=13},{Rarity="Celestial",Best=14},{Rarity="Heavenly",Best=15},{Rarity="Corrupted",Best=16},{Rarity="Striker",Best=17},{Rarity="Sacred",Best=18},{Rarity="Paradox",Best=19},{Rarity="Founder",Best=20},{Rarity="Evolved",Best=21},{Rarity="Magic",Best=22},{Rarity="Oni",Best=23},{Rarity="Chaos",Best=24},{Rarity="Ruin",Best=25},{Rarity="Reborn",Best=26},{Rarity="Beast",Best=27},{Rarity="Nordic",Best=28},{Rarity="Hunter",Best=29},{Rarity="Soul",Best=30},{Rarity="Swordsman",Best=31},{Rarity="Gamer",Best=32},{Rarity="Revenge",Best=33},{Rarity="Chainsaw",Best=34},{Rarity="Eternity",Best=35},{Rarity="Academy",Best=36},{Rarity="Dynasty",Best=37},{Rarity="Grail",Best=38},{Rarity="Conquest",Best=39},{Rarity="Blaze",Best=40},{Rarity="Devour",Best=41},{Rarity="Raven",Best=42},{Rarity="Arcane",Best=43},{Rarity="Nightfall",Best=44},{Rarity="Smash",Best=45},{Rarity="Emblem",Best=46},{Rarity="Chrono",Best=47},{Rarity="Dunk",Best=48},{Rarity="Blossom",Best=49},{Rarity="Zenith",Best=50},{Rarity="Assassin",Best=51},{Rarity="Power",Best=52},{Rarity="Rebellion",Best=53}}
+    Rarity = {{Rarity="Common",Best=1},{Rarity="Uncommon",Best=2},{Rarity="Rare",Best=3},{Rarity="Epic",Best=4},{Rarity="Legendary",Best=5},{Rarity="Mythic",Best=6},{Rarity="Secret",Best=7},{Rarity="Divine",Best=8},{Rarity="Transcendent",Best=9},{Rarity="Shadow",Best=10},{Rarity="Emperor",Best=11},{Rarity="Demon",Best=12},{Rarity="Manga",Best=13},{Rarity="Celestial",Best=14},{Rarity="Heavenly",Best=15},{Rarity="Corrupted",Best=16},{Rarity="Striker",Best=17},{Rarity="Sacred",Best=18},{Rarity="Paradox",Best=19},{Rarity="Founder",Best=20},{Rarity="Evolved",Best=21},{Rarity="Magic",Best=22},{Rarity="Oni",Best=23},{Rarity="Chaos",Best=24},{Rarity="Ruin",Best=25},{Rarity="Reborn",Best=26},{Rarity="Beast",Best=27},{Rarity="Nordic",Best=28},{Rarity="Hunter",Best=29},{Rarity="Soul",Best=30},{Rarity="Swordsman",Best=31},{Rarity="Gamer",Best=32},{Rarity="Revenge",Best=33},{Rarity="Chainsaw",Best=34},{Rarity="Eternity",Best=35},{Rarity="Academy",Best=36},{Rarity="Dynasty",Best=37},{Rarity="Grail",Best=38},{Rarity="Conquest",Best=39},{Rarity="Blaze",Best=40},{Rarity="Devour",Best=41},{Rarity="Raven",Best=42},{Rarity="Arcane",Best=43},{Rarity="Nightfall",Best=44},{Rarity="Smash",Best=45},{Rarity="Emblem",Best=46},{Rarity="Chrono",Best=47},{Rarity="Dunk",Best=48},{Rarity="Blossom",Best=49},{Rarity="Zenith",Best=50},{Rarity="Assassin",Best=51},{Rarity="Power",Best=52},{Rarity="Rebellion",Best=53},{Rarity="Alchemy",Best=54},{Rarity="Azure",Best=55},{Rarity="Psychic",Best=56}}
 }
 
 local MutationRankByName = {}
