@@ -21,7 +21,7 @@ local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/d
 local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/addons/ThemeManager.lua"))()
 
 --[[ Icon Module ]]--
-local IconsLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/isskkauww/Modules/refs/heads/main/Icons.luau"))()
+local IconsLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/Main-v2.lua"))()
 
 -- Adapts whatever shape IconsLib returns into the {Url, ImageRectSize, ImageRectOffset} format the Library's icon module expects
 local function GetAsset(IconName)
@@ -124,7 +124,7 @@ local Window = Library:CreateWindow({
     AlwaysOnTop = true,
 
     Animations = {
-        ToggleWindow = true,
+        ToggleWindow = false,
         TabSwitch = true,
         Groupbox = true,
         Dropdown = true,
@@ -133,6 +133,15 @@ local Window = Library:CreateWindow({
     TabTransitionTime = 0.22,
     TabSwipeOffset = 26,
     TabSwipeFrom = "top",
+
+    TabButtonsStyle = {
+        Gap = 4,
+        Padding = 8,
+        CornerRadius = 6,
+        Indicator = true,
+        IndicatorWidth = 2,
+        IndicatorHeight = 20,
+    },
 })
 
 -- remove the Lock button on mobile
